@@ -1,105 +1,140 @@
 # DNA-Sequencing-Classifier
 
-DNA-Sequencing-Classifier is a machine learning project that classifies DNA sequences from humans, chimpanzees, and dogs. It uses k-mer encoding to convert DNA sequences into features and leverages a Naive Bayes classifier to distinguish between the species based on their sequence patterns.
+DNA-Sequencing-Classifier is a machine learning project designed to classify DNA sequences from humans, chimpanzees, and dogs. By using k-mer encoding, this project translates DNA sequences into identifiable features and applies a Naive Bayes classifier to accurately distinguish between DNA from different species.
+
+## Table of Contents
+1. [Project Overview](#project-overview)
+2. [Installation](#installation)
+3. [Dataset Description](#dataset-description)
+4. [Methodology](#methodology)
+5. [Code Structure](#code-structure)
+6. [Evaluation](#evaluation)
+7. [Results](#results)
+8. [Future Improvements](#future-improvements)
+
+---
 
 ## Project Overview
 
-This project reads DNA sequence data from three species (human, chimpanzee, and dog), preprocesses the data by converting sequences into k-mers (hexamer words), and transforms these words into features using a count-based vectorization method. A Naive Bayes classifier is then trained to classify DNA sequences, and the model’s performance is evaluated on key metrics.
+DNA sequences consist of a series of nucleotide bases (A, T, C, G) that encode biological information. By analyzing the unique patterns in these sequences, we can classify DNA data by species. In this project, we convert DNA sequences into k-mer words (subsequences of fixed length) and utilize a Naive Bayes classifier to predict the species of unknown DNA samples.
 
-### Dataset
+### Key Features:
+- **Species Classification**: Determines whether a given DNA sequence belongs to a human, chimpanzee, or dog.
+- **Feature Extraction**: Converts DNA sequences into feature vectors using k-mer encoding (nucleotide subsequences).
+- **Model Evaluation**: Measures performance with accuracy, precision, recall, and F1 scores.
 
-The project uses three datasets:
-- `human_data.txt`: DNA sequence data for humans
-- `chimp_data.txt`: DNA sequence data for chimpanzees
-- `dog_data.txt`: DNA sequence data for dogs
+## Installation
 
-Each dataset contains a `sequence` column representing DNA sequences.
+To set up and run this project, please follow these steps:
 
-## Setup
+1. **Clone the repository**:
 
-1. Clone this repository.
-2. Install the required libraries by running:
+   ```bash
+   git clone https://github.com/ss1910singh/DNA-Sequencing-Classifier.git
+   cd DNA-Sequencing-Classifier
+   ```
+
+2. **Install dependencies**:
+
+   Ensure you have Python installed (version 3.6+ is recommended) and run:
 
    ```bash
    pip install -r requirements.txt
    ```
 
-3. Make sure the dataset files (`human_data.txt`, `chimp_data.txt`, and `dog_data.txt`) are in the root directory.
+3. **Dataset Preparation**:
 
-## Code Description
+   Make sure the dataset files (`human_data.txt`, `chimp_data.txt`, and `dog_data.txt`) are placed in the root directory of the project.
 
-### Importing Libraries
+## Dataset Description
 
-We start by importing essential libraries, including `numpy`, `pandas`, and `matplotlib`, as well as Scikit-Learn for machine learning tasks.
+This project works with three datasets, each containing DNA sequences from a specific species:
 
-```python
-import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
-%matplotlib inline
-```
+- **human_data.txt**: DNA sequences labeled for humans
+- **chimp_data.txt**: DNA sequences labeled for chimpanzees
+- **dog_data.txt**: DNA sequences labeled for dogs
 
-### Data Loading
+Each file contains a `sequence` column with DNA base sequences. The class label (species type) is also included for training and evaluation purposes.
 
-DNA sequence data from humans, chimpanzees, and dogs is loaded using pandas:
+## Methodology
 
-```python
-human_data = pd.read_table('human_data.txt')
-chimp_data = pd.read_table('chimp_data.txt')
-dog_data = pd.read_table('dog_data.txt')
-```
+### Step 1: Data Preprocessing
 
-### Preprocessing
-
-DNA sequences are converted to k-mer words (default size 6) using a helper function:
+We begin by converting DNA sequences into k-mer words, which are fixed-length subsequences from each DNA sequence. In this project, we use a default k-mer size of 6 (hexamers).
 
 ```python
 def getKmers(sequence, size=6):
     return [sequence[x:x+size].lower() for x in range(len(sequence) - size + 1)]
 ```
 
-### Vectorization
+### Step 2: Feature Extraction
 
-After preprocessing, sequences are converted into feature vectors using `CountVectorizer` with a 4-gram range:
+After converting sequences into k-mer words, we vectorize these k-mers using `CountVectorizer` from Scikit-Learn. The `CountVectorizer` creates a matrix of token counts, enabling us to analyze the frequency of 4-grams in the sequences.
 
 ```python
 from sklearn.feature_extraction.text import CountVectorizer
 cv = CountVectorizer(ngram_range=(4,4))
-X = cv.fit_transform(human_texts)
-X_chimp = cv.transform(chimp_texts)
-X_dog = cv.transform(dog_texts)
+X = cv.fit_transform(human_texts)  # Vectorize human DNA sequences
 ```
 
-### Model Training
+### Step 3: Model Training
 
-The processed data is split into training and testing sets, with an 80-20 ratio:
+The dataset is split into training and testing sets (80-20 split), and we apply a Multinomial Naive Bayes classifier. The classifier is trained on the vectorized DNA sequence data, which learns the unique patterns associated with each species.
 
 ```python
 from sklearn.model_selection import train_test_split
 X_train, X_test, y_train, y_test = train_test_split(X, y_data, test_size=0.20, random_state=42)
-```
 
-A Naive Bayes classifier is trained on the training set:
-
-```python
 from sklearn.naive_bayes import MultinomialNB
 classifier = MultinomialNB(alpha=0.1)
 classifier.fit(X_train, y_train)
 ```
 
-### Evaluation
+## Code Structure
 
-The model is evaluated using metrics including accuracy, precision, recall, and F1 score:
+The main code structure is as follows:
+
+1. **Data Loading**: Load DNA sequence data for human, chimpanzee, and dog species.
+2. **Data Preprocessing**: Convert sequences to k-mers and vectorize them.
+3. **Model Training**: Split the data and train the Naive Bayes classifier.
+4. **Evaluation**: Evaluate the model using metrics such as accuracy, precision, recall, and F1 score.
+
+## Evaluation
+
+After training, we evaluate the model's performance using various metrics:
+
+- **Accuracy**: Overall correctness of the classifier.
+- **Precision**: Proportion of true positive predictions.
+- **Recall**: Ability of the classifier to find all positive samples.
+- **F1 Score**: Weighted average of precision and recall.
+
+Evaluation is performed using a custom function:
 
 ```python
-from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
+
+def get_metrics(y_test, y_predicted):
+    accuracy = accuracy_score(y_test, y_predicted)
+    precision = precision_score(y_test, y_predicted, average='weighted')
+    recall = recall_score(y_test, y_predicted, average='weighted')
+    f1 = f1_score(y_test, y_predicted, average='weighted')
+    return accuracy, precision, recall, f1
+
+# Example Output
 accuracy, precision, recall, f1 = get_metrics(y_test, y_pred)
+print("accuracy = %.3f \nprecision = %.3f \nrecall = %.3f \nf1 = %.3f" % (accuracy, precision, recall, f1))
 ```
 
 ## Results
 
-The classifier's performance is displayed with a confusion matrix, and accuracy, precision, recall, and F1 scores are reported.
+The model's predictions are analyzed using a confusion matrix and the key metrics. These metrics provide insight into the classifier's effectiveness at identifying species from DNA sequences:
 
-## Requirements
+- **Confusion Matrix**: Displays the true positives, false positives, false negatives, and true negatives for each class.
+- **Metrics**: Detailed performance values for accuracy, precision, recall, and F1 score.
 
-Please refer to the `requirements.txt` file for necessary packages.
+## Future Improvements
+
+Future enhancements may include:
+1. **Expanding Data Variety**: Adding more species or larger datasets for increased robustness.
+2. **Parameter Tuning**: Exploring hyperparameter optimization for improved accuracy.
+3. **Alternative Models**: Testing other classifiers such as SVMs or neural networks to compare performance.
